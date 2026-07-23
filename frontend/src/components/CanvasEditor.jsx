@@ -5,7 +5,8 @@ import {
   Type, Square, Circle, Image as ImageIcon, Trash2, ArrowUp, ArrowDown, 
   Download, Bold, Italic, Underline, AlignCenter, AlignLeft, AlignRight, 
   LayoutGrid, Star, ZoomIn, ZoomOut, Maximize, Move, Monitor, Settings,
-  Layers, Lock, Unlock, Eye, EyeOff, Copy, Folder, Sparkles, Wand2, Group, Ungroup
+  Layers, Lock, Unlock, Eye, EyeOff, Copy, Folder, Sparkles, Wand2, Group, Ungroup,
+  Smile, Shield, Grid, Image, FileText, Compass, Award, Bookmark, Palette
 } from 'lucide-react';
 
 const ARTBOARDS = {
@@ -30,13 +31,67 @@ const BLEND_MODES = [
   'color-dodge', 'color-burn', 'hard-light', 'soft-light', 'difference', 'exclusion'
 ];
 
+// Comprehensive Design Assets Library Catalogs
+const DESIGN_ASSETS = {
+  icons: [
+    { name: 'Lightning', path: 'M13 2L3 14h9l-1 8 10-12h-9l1-8z', color: '#eab308' },
+    { name: 'Heart', path: 'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z', color: '#ef4444' },
+    { name: 'Flame', path: 'M12 23c-4.97 0-9-3.58-9-8 0-4.14 3.33-7.59 7.23-8.47.41-.09.84.09 1.05.46.21.37.17.84-.11 1.16C9.69 9.38 9 10.63 9 12c0 2.21 1.79 4 4 4s4-1.79 4-4c0-.75-.21-1.45-.58-2.06-.21-.35-.15-.8.08-1.09.23-.29.65-.37.98-.19C19.86 10.12 21 12.4 21 15c0 4.42-4.03 8-9 8z', color: '#f97316' }
+  ],
+  stickers: [
+    { name: 'Smile Badge', type: 'circle', fill: '#facc15', text: 'GOOD VIBES' },
+    { name: 'Danger Tag', type: 'rect', fill: '#0f172a', text: 'RESTRICTED' }
+  ],
+  illustrations: [
+    { name: 'Mountain Peak', path: 'M2 20L12 4l10 16H2zm10-11.5L4.5 18h15L12 8.5z', color: '#334155' },
+    { name: 'Palm Tree', path: 'M12 22v-8m0 0C9.5 14 7 11.5 7 9c0-2.5 2.5-5 5-5s5 2.5 5 5c0 2.5-2.5 5-5 5z', color: '#10b981' }
+  ],
+  clipart: [
+    { name: 'Star Burst', path: 'M12 2l2.4 7.4h7.6l-6.2 4.5 2.4 7.4-6.2-4.5-6.2 4.5 2.4-7.4-6.2-4.5h7.6z', color: '#3b82f6' }
+  ],
+  frames: [
+    { name: 'Square Border', stroke: '#0f172a', width: 200, height: 200 },
+    { name: 'Circular Border', stroke: '#3b82f6', radius: 100 }
+  ],
+  badges: [
+    { name: 'Est. 2026', text: 'EST. 2026', font: 'Cinzel' },
+    { name: 'Original', text: '100% ORIGINAL', font: 'Oswald' }
+  ],
+  patterns: [
+    { name: 'Polka Dots', type: 'dots' },
+    { name: 'Stripes', type: 'stripes' }
+  ],
+  textures: [
+    { name: 'Distress Grunge', opacity: 0.15 },
+    { name: 'Vintage Wash', opacity: 0.25 }
+  ],
+  backgrounds: [
+    { name: 'Solid White', color: '#ffffff' },
+    { name: 'Dark Slate', color: '#0f172a' },
+    { name: 'Sunset Gradient', gradient: ['#f97316', '#db2777'] }
+  ],
+  templates: [
+    { name: 'Urban Streetwear', text: 'METROPOLIS', sub: 'NYC // 2026' },
+    { name: 'Athletic Club', text: 'VARSITY', sub: 'CHAMPIONS' }
+  ],
+  logos: [
+    { name: 'Minimal Crest', text: 'ATELIER', shape: 'circle' }
+  ],
+  shapes: [
+    { name: 'Rectangle', type: 'rect' },
+    { name: 'Circle', type: 'circle' },
+    { name: 'Triangle', type: 'triangle' }
+  ]
+};
+
 export default function CanvasEditor() {
   const canvasRef = useRef(null);
   const wrapperRef = useRef(null);
-  const { canvas, setCanvas, activeObject, setActiveObject, loadTemplate } = useCanvasStore();
+  const { canvas, setCanvas, activeObject, setActiveObject } = useCanvasStore();
   
   // UI & Workspace State
-  const [activeLeftPanel, setActiveLeftPanel] = useState('settings');
+  const [activeLeftPanel, setActiveLeftPanel] = useState('assets');
+  const [activeAssetTab, setActiveAssetTab] = useState('icons');
   const [activeRightPanel, setActiveRightPanel] = useState('layers'); 
   const [activeArtboard, setActiveArtboard] = useState('front');
   const [zoom, setZoom] = useState(1);
@@ -50,7 +105,7 @@ export default function CanvasEditor() {
   const [layerSearch, setLayerSearch] = useState('');
 
   useEffect(() => {
-    // Inject Google Fonts for advanced typography
+    // Inject Google Fonts for typography
     const link = document.createElement('link');
     link.href = 'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@400;700&family=Montserrat:wght@400;700;900&family=Oswald:wght@400;700&family=Pacifico&family=Playfair+Display:wght@400;700&display=swap';
     link.rel = 'stylesheet';
@@ -61,10 +116,7 @@ export default function CanvasEditor() {
   const syncLayers = useCallback(() => {
     if (!canvas) return;
     const allObjects = canvas.getObjects();
-    // Exclude workspace guides (grid, bleed, etc.) from the layers panel
     const userLayers = allObjects.filter(o => !o.isWorkspaceLayer);
-    
-    // We reverse so the top-most visual layer is at the top of the UI list
     setLayers([...userLayers].reverse());
   }, [canvas]);
 
@@ -95,7 +147,6 @@ export default function CanvasEditor() {
   const renderArtboard = useCallback(() => {
     if (!canvas) return;
 
-    // Clear old workspace guides
     const objectsToRemove = canvas.getObjects().filter(o => o.isWorkspaceLayer);
     objectsToRemove.forEach(o => canvas.remove(o));
 
@@ -219,7 +270,6 @@ export default function CanvasEditor() {
     canvas.on('selection:updated', (e) => { setActiveObject(e.selected[0]); updateLiveDimensions(e.selected[0]); });
     canvas.on('selection:cleared', () => { setActiveObject(null); setDimensions(null); setActiveRightPanel('layers'); });
 
-    // Sync layers on any canvas modification
     canvas.on('object:added', syncLayers);
     canvas.on('object:removed', syncLayers);
     canvas.on('object:modified', syncLayers);
@@ -229,20 +279,49 @@ export default function CanvasEditor() {
   const addText = () => {
     const text = new fabric.IText('PRO DESIGN', {
       left: canvas.getWidth() / 2, top: canvas.getHeight() / 2, originX: 'center', originY: 'center',
-      fontFamily: 'Montserrat', fill: '#0f172a', fontSize: 60, fontWeight: '900',
+      fontFamily: 'Montserrat', fill: '#0f172a', fontSize: 50, fontWeight: '900',
       name: `Text Layer ${layers.length + 1}`
     });
     canvas.add(text);
     canvas.setActiveObject(text);
   };
 
-  const addShape = () => {
-    const rect = new fabric.Rect({
-      left: canvas.getWidth() / 2, top: canvas.getHeight() / 2, originX: 'center', originY: 'center',
-      width: 150, height: 150, fill: '#3b82f6', rx: 10, ry: 10, name: `Shape ${layers.length + 1}`
-    });
-    canvas.add(rect);
-    canvas.setActiveObject(rect);
+  const addShape = (type) => {
+    let obj;
+    if (type === 'rect') {
+      obj = new fabric.Rect({ width: 150, height: 150, fill: '#3b82f6', rx: 10, ry: 10 });
+    } else if (type === 'circle') {
+      obj = new fabric.Circle({ radius: 75, fill: '#10b981' });
+    } else if (type === 'triangle') {
+      obj = new fabric.Triangle({ width: 150, height: 150, fill: '#f59e0b' });
+    }
+    if (obj) {
+      obj.set({ left: canvas.getWidth() / 2, top: canvas.getHeight() / 2, originX: 'center', originY: 'center', name: `Shape ${layers.length + 1}` });
+      canvas.add(obj);
+      canvas.setActiveObject(obj);
+    }
+  };
+
+  const injectAsset = (asset) => {
+    if (asset.path) {
+      const pathObj = new fabric.Path(asset.path, {
+        left: canvas.getWidth() / 2, top: canvas.getHeight() / 2, originX: 'center', originY: 'center',
+        fill: asset.color || '#3b82f6', scaleX: 2, scaleY: 2, name: `${asset.name} Asset`
+      });
+      canvas.add(pathObj);
+      canvas.setActiveObject(pathObj);
+    } else if (asset.text) {
+      const textObj = new fabric.IText(asset.text, {
+        left: canvas.getWidth() / 2, top: canvas.getHeight() / 2, originX: 'center', originY: 'center',
+        fontFamily: asset.font || 'Montserrat', fill: '#0f172a', fontSize: 40, fontWeight: 'bold', name: `${asset.name} Badge`
+      });
+      canvas.add(textObj);
+      canvas.setActiveObject(textObj);
+    } else if (asset.color) {
+      const board = canvas.getObjects().find(o => o.name === 'garment_board');
+      if (board) board.set('fill', asset.color);
+      canvas.requestRenderAll();
+    }
   };
 
   const applyTextEffect = (effectType) => {
@@ -275,12 +354,7 @@ export default function CanvasEditor() {
 
   const updateActiveProp = (prop, value) => {
     if (activeObject) {
-      if (prop === 'charSpacing') {
-        // Fabric maps charSpacing to hundreds (e.g. 100 = 1em)
-        activeObject.set(prop, parseInt(value));
-      } else {
-        activeObject.set(prop, value);
-      }
+      activeObject.set(prop, prop === 'charSpacing' ? parseInt(value) : value);
       canvas.renderAll();
       syncLayers();
     }
@@ -291,7 +365,6 @@ export default function CanvasEditor() {
     if (direction === 'up') canvas.bringForward(targetObj);
     if (direction === 'down') canvas.sendBackwards(targetObj);
     
-    // Safety check to keep workspace background at absolute bottom
     const workspaceLayers = canvas.getObjects().filter(o => o.isWorkspaceLayer);
     workspaceLayers.forEach(o => canvas.sendToBack(o));
     syncLayers();
@@ -345,7 +418,6 @@ export default function CanvasEditor() {
     const guides = canvas.getObjects().filter(o => o.name === 'bleed_area' || o.name === 'safe_area' || o.name === 'grid_line');
     guides.forEach(g => g.visible = false);
     
-    // Multiplier 3 generates ~300 DPI export from standard web sizes
     const dataURL = canvas.toDataURL({
       format: 'png', multiplier: 3,
       left: board.left - (board.width / 2), top: board.top - (board.height / 2),
@@ -367,7 +439,6 @@ export default function CanvasEditor() {
       <div style={{ display: 'flex', padding: '10px 20px', backgroundColor: '#0f172a', color: 'white', alignItems: 'center', height: '60px', borderBottom: '1px solid #1e293b' }}>
         <h1 style={{ fontSize: '16px', fontWeight: 'bold', marginRight: '30px', letterSpacing: '1px' }}>ENTERPRISE DESIGNER</h1>
         
-        {/* Quick Tools */}
         {activeObject?.type === 'i-text' && (
           <div style={{ display: 'flex', gap: '5px', alignItems: 'center', borderLeft: '1px solid #334155', paddingLeft: '20px' }}>
              <select onChange={(e) => updateActiveProp('fontFamily', e.target.value)} value={activeObject.fontFamily} style={toolbarSelectStyle}>
@@ -391,14 +462,14 @@ export default function CanvasEditor() {
 
       <div style={{ display: 'flex', flexGrow: 1, overflow: 'hidden' }}>
         
-        {/* LEFT SIDEBAR - ADDITIONS & ARTBOARDS */}
-        <div style={{ width: '280px', backgroundColor: '#ffffff', borderRight: '1px solid #e2e8f0', display: 'flex' }}>
+        {/* LEFT SIDEBAR - DESIGN ASSETS & SETTINGS */}
+        <div style={{ width: '320px', backgroundColor: '#ffffff', borderRight: '1px solid #e2e8f0', display: 'flex' }}>
           <div style={{ width: '60px', backgroundColor: '#f1f5f9', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '15px 0', gap: '15px', borderRight: '1px solid #e2e8f0' }}>
             <button onClick={() => setActiveLeftPanel('settings')} style={activeLeftPanel === 'settings' ? iconTabActive : iconTab} title="Artboard Setup"><Settings size={20}/></button>
-            <button onClick={() => setActiveLeftPanel('tools')} style={activeLeftPanel === 'tools' ? iconTabActive : iconTab} title="Design Tools"><Wand2 size={20}/></button>
+            <button onClick={() => setActiveLeftPanel('assets')} style={activeLeftPanel === 'assets' ? iconTabActive : iconTab} title="Design Assets Library"><Wand2 size={20}/></button>
           </div>
 
-          <div style={{ flexGrow: 1, padding: '20px', overflowY: 'auto' }}>
+          <div style={{ flexGrow: 1, padding: '15px', overflowY: 'auto' }}>
             {activeLeftPanel === 'settings' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 <h3 style={pHeader}>Print Artboard</h3>
@@ -411,15 +482,62 @@ export default function CanvasEditor() {
                 <h3 style={pHeader}>Precision Grid</h3>
                 <label style={toggleLabel}><input type="checkbox" checked={showGrid} onChange={e => setShowGrid(e.target.checked)} /> Show Visual Grid</label>
                 <label style={toggleLabel}><input type="checkbox" checked={snapToGrid} onChange={e => setSnapToGrid(e.target.checked)} /> Snap Objects to Grid</label>
-                <label style={toggleLabel}><input type="checkbox" defaultChecked /> Smart Center Guides</label>
               </div>
             )}
 
-            {activeLeftPanel === 'tools' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <h3 style={pHeader}>Elements</h3>
-                <button onClick={addText} style={btnSecondary}><Type size={16}/> Add Typography</button>
-                <button onClick={addShape} style={btnSecondary}><Square size={16}/> Add Basic Shape</button>
+            {activeLeftPanel === 'assets' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <h3 style={pHeader}>Design Assets Library</h3>
+                
+                {/* Asset Sub-Category Tabs */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '5px' }}>
+                  {Object.keys(DESIGN_ASSETS).map((tab) => (
+                    <button 
+                      key={tab} 
+                      onClick={() => setActiveAssetTab(tab)} 
+                      style={{ 
+                        padding: '6px 4px', fontSize: '11px', textTransform: 'capitalize', 
+                        backgroundColor: activeAssetTab === tab ? '#3b82f6' : '#f1f5f9',
+                        color: activeAssetTab === tab ? '#ffffff' : '#475569',
+                        border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold'
+                      }}
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                </div>
+
+                <hr style={divider} />
+
+                {/* Quick Add Custom Elements */}
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                  <button onClick={addText} style={{...btnSecondary, flex: 1}}><Type size={14}/> Text</button>
+                  <button onClick={() => addShape('rect')} style={{...btnSecondary, flex: 1}}><Square size={14}/> Box</button>
+                  <button onClick={() => addShape('circle')} style={{...btnSecondary, flex: 1}}><Circle size={14}/> Dot</button>
+                </div>
+
+                {/* Active Asset Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  {DESIGN_ASSETS[activeAssetTab]?.map((asset, idx) => (
+                    <div 
+                      key={idx} 
+                      onClick={() => injectAsset(asset)}
+                      style={{ 
+                        padding: '12px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', 
+                        borderRadius: '6px', textAlign: 'center', cursor: 'pointer', fontSize: '12px',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
+                        transition: '0.2s'
+                      }}
+                    >
+                      {asset.path ? (
+                        <svg viewBox="0 0 24 24" width="24" height="24"><path d={asset.path} fill={asset.color || '#3b82f6'}/></svg>
+                      ) : (
+                        <Star size={20} color="#3b82f6" />
+                      )}
+                      <span style={{ fontWeight: '500', color: '#334155' }}>{asset.name}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -427,15 +545,12 @@ export default function CanvasEditor() {
 
         {/* MIDDLE - WORKSPACE & CANVAS */}
         <div ref={wrapperRef} style={{ flexGrow: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#cbd5e1' }}>
-          
-          {/* Rulers CSS Implementation */}
           <div style={{ position: 'absolute', top: 0, left: '25px', right: 0, height: '25px', backgroundColor: '#f8fafc', borderBottom: '1px solid #94a3b8', zIndex: 10, backgroundSize: '100px 100%', backgroundImage: 'repeating-linear-gradient(to right, #64748b 0, #64748b 1px, transparent 1px, transparent 10px, #cbd5e1 10px, #cbd5e1 11px, transparent 11px, transparent 100px)' }}></div>
           <div style={{ position: 'absolute', top: '25px', left: 0, bottom: 0, width: '25px', backgroundColor: '#f8fafc', borderRight: '1px solid #94a3b8', zIndex: 10, backgroundSize: '100% 100px', backgroundImage: 'repeating-linear-gradient(to bottom, #64748b 0, #64748b 1px, transparent 1px, transparent 10px, #cbd5e1 10px, #cbd5e1 11px, transparent 11px, transparent 100px)' }}></div>
           <div style={{ position: 'absolute', top: 0, left: 0, width: '25px', height: '25px', backgroundColor: '#e2e8f0', borderRight: '1px solid #94a3b8', borderBottom: '1px solid #94a3b8', zIndex: 11 }}></div>
 
           <canvas ref={canvasRef} style={{ zIndex: 1 }} />
 
-          {/* Floating Workspace Controls */}
           {dimensions && (
             <div style={{ position: 'absolute', top: '35px', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#1e293b', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '11px', zIndex: 20, fontWeight: 'bold', letterSpacing: '1px' }}>
               W: {dimensions.w}px &nbsp;|&nbsp; H: {dimensions.h}px
@@ -456,7 +571,6 @@ export default function CanvasEditor() {
         {/* RIGHT SIDEBAR - LAYERS & PROPERTIES */}
         <div style={{ width: '320px', backgroundColor: '#ffffff', borderLeft: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column' }}>
           
-          {/* Tabs for Right Panel */}
           <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0' }}>
             <button onClick={() => setActiveRightPanel('layers')} style={activeRightPanel === 'layers' ? rightTabActive : rightTab}>
               <Layers size={16} /> Layers
@@ -468,7 +582,6 @@ export default function CanvasEditor() {
 
           <div style={{ flexGrow: 1, overflowY: 'auto' }}>
             
-            {}
             {activeRightPanel === 'layers' && (
               <div style={{ padding: '15px' }}>
                 <div style={{ display: 'flex', gap: '5px', marginBottom: '15px' }}>
@@ -486,7 +599,6 @@ export default function CanvasEditor() {
                       backgroundColor: activeObject === layer ? '#eff6ff' : '#f8fafc',
                       border: `1px solid ${activeObject === layer ? '#bfdbfe' : '#e2e8f0'}`, borderRadius: '6px'
                     }}>
-                      {/* Drag / Select */}
                       <div onClick={() => canvas.setActiveObject(layer) || canvas.renderAll()} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', flexGrow: 1, overflow: 'hidden' }}>
                         {layer.type === 'i-text' ? <Type size={14} color="#64748b" style={{marginRight:'8px'}}/> : 
                          layer.type === 'group' ? <Folder size={14} color="#64748b" style={{marginRight:'8px'}}/> :
@@ -498,7 +610,6 @@ export default function CanvasEditor() {
                         />
                       </div>
                       
-                      {/* Layer Actions */}
                       <button onClick={() => toggleLayerVisibility(layer)} style={layerActionBtn}>
                         {layer.visible ? <Eye size={14}/> : <EyeOff size={14} color="#cbd5e1"/>}
                       </button>
@@ -507,7 +618,6 @@ export default function CanvasEditor() {
                       </button>
                       <button onClick={() => duplicateLayer(layer)} style={layerActionBtn}><Copy size={14}/></button>
                       
-                      {/* Quick Ordering */}
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <button onClick={() => handleLayerOrder('up', layer)} style={{...layerActionBtn, padding: 0}}><ArrowUp size={12}/></button>
                         <button onClick={() => handleLayerOrder('down', layer)} style={{...layerActionBtn, padding: 0}}><ArrowDown size={12}/></button>
@@ -519,15 +629,12 @@ export default function CanvasEditor() {
               </div>
             )}
 
-            {}
             {activeRightPanel === 'properties' && (
               <div style={{ padding: '15px' }}>
                 {!activeObject ? (
                    <div style={{ fontSize: '13px', color: '#64748b', textAlign: 'center', padding: '20px' }}>Select a layer on the canvas to view properties.</div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    
-                    {/* General Object Properties */}
                     <div>
                       <h4 style={subHeader}>Layer Blend & Opacity</h4>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
@@ -540,7 +647,6 @@ export default function CanvasEditor() {
                       </select>
                     </div>
 
-                    {/* Advanced Text Tools */}
                     {activeObject.type === 'i-text' && (
                       <>
                         <hr style={divider} />
@@ -554,14 +660,6 @@ export default function CanvasEditor() {
                             <span style={labelTxt}>Line Height</span>
                             <input type="number" step="0.1" value={activeObject.lineHeight || 1.16} onChange={(e) => updateActiveProp('lineHeight', parseFloat(e.target.value))} style={numInput} />
                           </div>
-                          <div style={propRow}>
-                            <span style={labelTxt}>Text Outline (px)</span>
-                            <input type="number" value={activeObject.strokeWidth || 0} onChange={(e) => { updateActiveProp('strokeWidth', parseFloat(e.target.value)); if(e.target.value > 0 && !activeObject.stroke) updateActiveProp('stroke', '#000'); }} style={numInput} />
-                          </div>
-                          <div style={propRow}>
-                            <span style={labelTxt}>Outline Color</span>
-                            <input type="color" value={activeObject.stroke || '#000000'} onChange={(e) => updateActiveProp('stroke', e.target.value)} style={{ cursor: 'pointer' }} />
-                          </div>
                         </div>
 
                         <hr style={divider} />
@@ -573,17 +671,10 @@ export default function CanvasEditor() {
                             <button onClick={() => applyTextEffect('glow')} style={effectBtn}><Wand2 size={14}/> Neon Glow</button>
                             <button onClick={() => applyTextEffect('outline')} style={effectBtn}><Type size={14}/> Hollow</button>
                           </div>
-                          <button 
-                            onClick={() => { activeObject.set('shadow', null); activeObject.set('strokeWidth', 0); activeObject.set('fill', '#000000'); canvas.renderAll(); }} 
-                            style={{...effectBtn, width: '100%', marginTop: '8px', color: '#ef4444', border: '1px solid #fca5a5' }}
-                          >
-                            Clear Effects
-                          </button>
                         </div>
                       </>
                     )}
 
-                    {/* Delete Object */}
                     <hr style={divider} />
                     <button onClick={() => { canvas.remove(activeObject); setActiveObject(null); syncLayers(); }} style={{...btnSecondary, color: '#ef4444', borderColor: '#fecaca', backgroundColor: '#fef2f2', justifyContent: 'center' }}>
                       <Trash2 size={16}/> Delete Layer
