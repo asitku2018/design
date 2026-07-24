@@ -6,7 +6,8 @@ import {
   Download, Bold, Italic, Underline, AlignCenter, AlignLeft, AlignRight, 
   LayoutGrid, Star, ZoomIn, ZoomOut, Maximize, Move, Monitor, Settings,
   Layers, Lock, Unlock, Eye, EyeOff, Copy, Folder, Sparkles, Wand2, Group, Ungroup,
-  Smile, Shield, Grid, Image, FileText, Compass, Award, Bookmark, Palette
+  Smile, Shield, Grid, Image, FileText, Compass, Award, Bookmark, Palette,
+  Crop, FlipHorizontal, FlipVertical, Sliders, ImagePlus, Eraser, Scissors
 } from 'lucide-react';
 
 const ARTBOARDS = {
@@ -302,6 +303,61 @@ export default function CanvasEditor() {
     }
   };
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (f) => {
+      fabric.Image.fromURL(f.target.result, (img) => {
+        img.scaleToWidth(300);
+        img.set({ left: canvas.getWidth() / 2, top: canvas.getHeight() / 2, originX: 'center', originY: 'center', name: `Image Layer ${layers.length + 1}` });
+        canvas.add(img);
+        canvas.setActiveObject(img);
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const applyImageFilter = (index, filterName, options) => {
+    if (!activeObject || activeObject.type !== 'image') return;
+    if (!activeObject.filters) activeObject.filters = [];
+    
+    if (!activeObject.filters[index]) {
+      activeObject.filters[index] = new fabric.Image.filters[filterName](options);
+    } else {
+      activeObject.filters[index].setOptions(options);
+    }
+    activeObject.applyFilters();
+    canvas.requestRenderAll();
+  };
+
+  const applyMagicErase = () => {
+    if (!activeObject || activeObject.type !== 'image') return;
+    if (!activeObject.filters) activeObject.filters = [];
+    // Simulate Magic Erase by removing the dominant background color (e.g., white)
+    activeObject.filters[5] = new fabric.Image.filters.RemoveColor({ color: '#ffffff', distance: 0.2 });
+    activeObject.applyFilters();
+    canvas.requestRenderAll();
+  };
+
+  const toggleFlip = (axis) => {
+    if (!activeObject) return;
+    activeObject.set(`flip${axis}`, !activeObject[`flip${axis}`]);
+    canvas.requestRenderAll();
+  };
+
+  const applyMask = (type) => {
+    if (!activeObject || activeObject.type !== 'image') return;
+    if (type === 'circle') {
+      const radius = Math.min(activeObject.width, activeObject.height) / 2;
+      const clipPath = new fabric.Circle({ radius, originX: 'center', originY: 'center', left: 0, top: 0 });
+      activeObject.set({ clipPath });
+    } else {
+      activeObject.set({ clipPath: null });
+    }
+    canvas.requestRenderAll();
+  };
+
   const injectAsset = (asset) => {
     if (asset.path) {
       const pathObj = new fabric.Path(asset.path, {
@@ -516,6 +572,11 @@ export default function CanvasEditor() {
                   <button onClick={() => addShape('circle')} style={{...btnSecondary, flex: 1}}><Circle size={14}/> Dot</button>
                 </div>
 
+                <label style={{...btnSecondary, justifyContent: 'center', marginBottom: '15px', backgroundColor: '#eff6ff', color: '#3b82f6', borderColor: '#bfdbfe', cursor: 'pointer'}}>
+                  <ImagePlus size={16}/> Upload Custom Image
+                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImageUpload} />
+                </label>
+
                 {/* Active Asset Grid */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   {DESIGN_ASSETS[activeAssetTab]?.map((asset, idx) => (
@@ -670,6 +731,51 @@ export default function CanvasEditor() {
                             <button onClick={() => applyTextEffect('vintage')} style={effectBtn}><Type size={14}/> Vintage</button>
                             <button onClick={() => applyTextEffect('glow')} style={effectBtn}><Wand2 size={14}/> Neon Glow</button>
                             <button onClick={() => applyTextEffect('outline')} style={effectBtn}><Type size={14}/> Hollow</button>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {activeObject.type === 'image' && (
+                      <>
+                        <hr style={divider} />
+                        <div>
+                          <h4 style={subHeader}><Sliders size={12} style={{marginRight: '4px', verticalAlign: 'middle'}}/> Image Adjustments</h4>
+                          
+                          <div style={{ display: 'flex', gap: '8px', marginBottom: '15px' }}>
+                            <button onClick={() => toggleFlip('X')} style={effectBtn} title="Flip Horizontal"><FlipHorizontal size={14}/></button>
+                            <button onClick={() => toggleFlip('Y')} style={effectBtn} title="Flip Vertical"><FlipVertical size={14}/></button>
+                            <button onClick={applyMagicErase} style={{...effectBtn, color: '#ec4899', borderColor: '#fbcfe8', backgroundColor: '#fdf2f8'}} title="Magic Erase (Remove White)"><Eraser size={14}/></button>
+                          </div>
+
+                          <div style={propRow}>
+                            <span style={labelTxt}>Brightness</span>
+                            <input type="range" min="-1" max="1" step="0.05" defaultValue="0" onChange={(e) => applyImageFilter(0, 'Brightness', { brightness: parseFloat(e.target.value) })} style={{ width: '100px' }} />
+                          </div>
+                          <div style={propRow}>
+                            <span style={labelTxt}>Contrast</span>
+                            <input type="range" min="-1" max="1" step="0.05" defaultValue="0" onChange={(e) => applyImageFilter(1, 'Contrast', { contrast: parseFloat(e.target.value) })} style={{ width: '100px' }} />
+                          </div>
+                          <div style={propRow}>
+                            <span style={labelTxt}>Saturation</span>
+                            <input type="range" min="-1" max="1" step="0.05" defaultValue="0" onChange={(e) => applyImageFilter(2, 'Saturation', { saturation: parseFloat(e.target.value) })} style={{ width: '100px' }} />
+                          </div>
+                          <div style={propRow}>
+                            <span style={labelTxt}>Blur</span>
+                            <input type="range" min="0" max="1" step="0.05" defaultValue="0" onChange={(e) => applyImageFilter(3, 'Blur', { blur: parseFloat(e.target.value) })} style={{ width: '100px' }} />
+                          </div>
+                          <div style={propRow}>
+                            <span style={labelTxt}>Hue</span>
+                            <input type="range" min="-1" max="1" step="0.05" defaultValue="0" onChange={(e) => applyImageFilter(4, 'HueRotation', { rotation: parseFloat(e.target.value) })} style={{ width: '100px' }} />
+                          </div>
+                        </div>
+
+                        <hr style={divider} />
+                        <div>
+                          <h4 style={subHeader}><Scissors size={12} style={{marginRight: '4px', verticalAlign: 'middle'}}/> Mask & Crop</h4>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                            <button onClick={() => applyMask('circle')} style={effectBtn}><Circle size={14}/> Circle Mask</button>
+                            <button onClick={() => applyMask('none')} style={effectBtn}><Crop size={14}/> Remove Mask</button>
                           </div>
                         </div>
                       </>
