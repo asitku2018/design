@@ -8,54 +8,28 @@ import {
   Layers, Lock, Unlock, Eye, EyeOff, Copy, Folder, Sparkles, Wand2, Group, Ungroup,
   Smile, Shield, Grid, FileText, Compass, Award, Bookmark, Palette,
   Crop, FlipHorizontal, FlipVertical, Sliders, ImagePlus, Eraser, Scissors,
-  PenTool, MousePointer2, Type as TypeIcon, Shirt, Coffee, ShoppingBag
+  PenTool, MousePointer2, Type as TypeIcon, Shirt, Coffee, ShoppingBag,
+  Box, Smartphone, User, Play, X
 } from 'lucide-react';
 
 const APPAREL_CATALOG = {
   tshirts: {
-    name: 'T-Shirts',
-    icon: Shirt,
+    name: 'T-Shirts', icon: Shirt,
     items: [
-      { id: 'ts1', brand: 'Gildan', name: 'Heavy Cotton T-Shirt', price: '$12.50', colors: ['#ffffff', '#0f172a', '#ef4444', '#3b82f6', '#10b981'], positions: ['front', 'back', 'left_sleeve', 'right_sleeve'] },
+      { id: 'ts1', brand: 'Gildan', name: 'Heavy Cotton T-Shirt', price: '$12.50', colors: ['#ffffff', '#0f172a', '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'], positions: ['front', 'back', 'left_sleeve', 'right_sleeve'] },
       { id: 'ts2', brand: 'Bella+Canvas', name: 'Premium Jersey', price: '$18.00', colors: ['#ffffff', '#1f2937', '#f43f5e', '#8b5cf6'], positions: ['front', 'back'] }
     ]
   },
   hoodies: {
-    name: 'Hoodies & Sweatshirts',
-    icon: Shirt,
+    name: 'Hoodies', icon: Shirt,
     items: [
-      { id: 'h1', brand: 'Champion', name: 'Reverse Weave Hoodie', price: '$35.00', colors: ['#f1f5f9', '#020617', '#b91c1c'], positions: ['front', 'back', 'hood', 'pocket'] },
-      { id: 'h2', brand: 'Gildan', name: 'Blend Crewneck', price: '$22.00', colors: ['#ffffff', '#334155', '#4d7c0f'], positions: ['front', 'back'] }
-    ]
-  },
-  polos: {
-    name: 'Polo Shirts',
-    icon: Shirt,
-    items: [
-      { id: 'p1', brand: 'Nike', name: 'Dri-FIT Polo', price: '$45.00', colors: ['#ffffff', '#000000', '#1d4ed8'], positions: ['front', 'back'] }
-    ]
-  },
-  jerseys: {
-    name: 'Jerseys & Tank Tops',
-    icon: Shirt,
-    items: [
-      { id: 'j1', brand: 'SportTek', name: 'Mesh Reversible', price: '$28.00', colors: ['#ffffff', '#dc2626', '#2563eb'], positions: ['front', 'back'] },
-      { id: 't1', brand: 'Next Level', name: 'Cotton Tank', price: '$14.00', colors: ['#ffffff', '#0f172a'], positions: ['front', 'back'] }
+      { id: 'h1', brand: 'Champion', name: 'Reverse Weave Hoodie', price: '$35.00', colors: ['#f1f5f9', '#020617', '#b91c1c'], positions: ['front', 'back', 'hood', 'pocket'] }
     ]
   },
   accessories: {
-    name: 'Caps & Bags',
-    icon: ShoppingBag,
+    name: 'Bags & Caps', icon: ShoppingBag,
     items: [
-      { id: 'c1', brand: 'Yupoong', name: 'Classic Snapback', price: '$15.00', colors: ['#000000', '#1e3a8a', '#7f1d1d'], positions: ['front'] },
       { id: 'b1', brand: 'Port Authority', name: 'Tote Bag', price: '$9.00', colors: ['#fef3c7', '#000000'], positions: ['front', 'back'] }
-    ]
-  },
-  drinkware: {
-    name: 'Mugs & Tumblers',
-    icon: Coffee,
-    items: [
-      { id: 'm1', brand: 'Generic', name: '11oz Ceramic Mug', price: '$8.00', colors: ['#ffffff', '#000000'], positions: ['front', 'back'] }
     ]
   }
 };
@@ -66,8 +40,7 @@ const ARTBOARDS = {
   left_sleeve: { name: 'Left Sleeve', width: 150, height: 150, safe: 10, bleed: 5 },
   right_sleeve: { name: 'Right Sleeve', width: 150, height: 150, safe: 10, bleed: 5 },
   hood: { name: 'Hood Outer', width: 200, height: 200, safe: 15, bleed: 10 },
-  pocket: { name: 'Front Pocket', width: 100, height: 100, safe: 5, bleed: 5 },
-  collar: { name: 'Inner Collar Tag', width: 80, height: 80, safe: 5, bleed: 2 }
+  pocket: { name: 'Front Pocket', width: 100, height: 100, safe: 5, bleed: 5 }
 };
 
 const GRID_SIZE = 20;
@@ -83,10 +56,6 @@ const DESIGN_ASSETS = {
     { name: 'Rectangle', type: 'rect' },
     { name: 'Circle', type: 'circle' },
     { name: 'Triangle', type: 'triangle' }
-  ],
-  badges: [
-    { name: 'Est. 2026', text: 'EST. 2026', font: 'Cinzel' },
-    { name: 'Original', text: '100% ORIGINAL', font: 'Oswald' }
   ]
 };
 
@@ -98,7 +67,7 @@ export default function CanvasEditor() {
   // UI & Workspace State
   const [activeLeftPanel, setActiveLeftPanel] = useState('apparel');
   const [activeAssetTab, setActiveAssetTab] = useState('icons');
-  const [activeRightPanel, setActiveRightPanel] = useState('layers'); 
+  const [activeRightPanel, setActiveRightPanel] = useState('properties'); 
   
   // Apparel & Artboard State
   const [activeCategory, setActiveCategory] = useState('tshirts');
@@ -115,17 +84,30 @@ export default function CanvasEditor() {
   const [layers, setLayers] = useState([]);
   const [layerSearch, setLayerSearch] = useState('');
   
-  // Vector & Pen Tool State
+  // Vector Tool State
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   const [brushColor, setBrushColor] = useState('#0f172a');
   const [brushSize, setBrushSize] = useState(5);
+
+  // Mockup & Preview State
+  const [showMockupModal, setShowMockupModal] = useState(false);
+  const [mockupMode, setMockupMode] = useState('studio'); // studio, flatlay, lifestyle, 3d, mobile, transparent
+  const [previewImage, setPreviewImage] = useState(null);
 
   useEffect(() => {
     const link = document.createElement('link');
     link.href = 'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@400;700&family=Montserrat:wght@400;700;900&family=Oswald:wght@400;700&family=Pacifico&family=Playfair+Display:wght@400;700&display=swap';
     link.rel = 'stylesheet';
     document.head.appendChild(link);
-    return () => document.head.removeChild(link);
+
+    const style = document.createElement('style');
+    style.innerHTML = `
+      @keyframes spin3d { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
+      .spin-animation { animation: spin3d 8s linear infinite; transform-style: preserve-3d; }
+    `;
+    document.head.appendChild(style);
+
+    return () => { document.head.removeChild(link); document.head.removeChild(style); };
   }, []);
 
   const syncLayers = useCallback(() => {
@@ -159,6 +141,27 @@ export default function CanvasEditor() {
       initCanvas.dispose();
     };
   }, [setCanvas]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ensure we don't delete if user is typing in an input field
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+      
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        const activeObj = canvas?.getActiveObject();
+        if (activeObj && !activeObj.isEditing) {
+          canvas.remove(activeObj);
+          canvas.discardActiveObject();
+          setActiveObject(null);
+          syncLayers();
+          canvas.requestRenderAll();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [canvas, setActiveObject, syncLayers]);
 
   const renderArtboard = useCallback(() => {
     if (!canvas) return;
@@ -274,7 +277,7 @@ export default function CanvasEditor() {
     canvas.on('object:scaling', (e) => updateLiveDimensions(e.target));
     canvas.on('selection:created', (e) => { setActiveObject(e.selected[0]); updateLiveDimensions(e.selected[0]); setActiveRightPanel('properties'); });
     canvas.on('selection:updated', (e) => { setActiveObject(e.selected[0]); updateLiveDimensions(e.selected[0]); });
-    canvas.on('selection:cleared', () => { setActiveObject(null); setDimensions(null); setActiveRightPanel('layers'); });
+    canvas.on('selection:cleared', () => { setActiveObject(null); setDimensions(null); setActiveRightPanel('properties'); });
 
     canvas.on('object:added', syncLayers);
     canvas.on('object:removed', syncLayers);
@@ -293,15 +296,6 @@ export default function CanvasEditor() {
     }
   };
 
-  const updateBrush = (prop, val) => {
-    if (prop === 'color') setBrushColor(val);
-    if (prop === 'width') setBrushSize(val);
-    if (canvas && canvas.freeDrawingBrush) {
-      canvas.freeDrawingBrush.color = prop === 'color' ? val : brushColor;
-      canvas.freeDrawingBrush.width = prop === 'width' ? val : brushSize;
-    }
-  };
-
   const addText = () => {
     const text = new fabric.IText('PRO DESIGN', {
       left: canvas.getWidth() / 2, top: canvas.getHeight() / 2, originX: 'center', originY: 'center',
@@ -310,22 +304,6 @@ export default function CanvasEditor() {
     });
     canvas.add(text);
     canvas.setActiveObject(text);
-  };
-
-  const textToOutlines = () => {
-    if (!activeObject || activeObject.type !== 'i-text') return;
-    // Simulates converting text to vector paths by rasterizing at high res 
-    // ensuring it cannot be edited but perfectly preserves the font styling for print
-    activeObject.cloneAsImage((clonedImg) => {
-      clonedImg.set({
-        left: activeObject.left, top: activeObject.top,
-        originX: activeObject.originX, originY: activeObject.originY,
-        name: `${activeObject.name} (Outlined)`
-      });
-      canvas.add(clonedImg);
-      canvas.remove(activeObject);
-      canvas.setActiveObject(clonedImg);
-    }, { multiplier: 4 });
   };
 
   const addShape = (type) => {
@@ -337,6 +315,17 @@ export default function CanvasEditor() {
       obj.set({ left: canvas.getWidth() / 2, top: canvas.getHeight() / 2, originX: 'center', originY: 'center', name: `Shape ${layers.length + 1}` });
       canvas.add(obj);
       canvas.setActiveObject(obj);
+    }
+  };
+
+  const injectAsset = (asset) => {
+    if (asset.path) {
+      const pathObj = new fabric.Path(asset.path, {
+        left: canvas.getWidth() / 2, top: canvas.getHeight() / 2, originX: 'center', originY: 'center',
+        fill: asset.color || '#3b82f6', scaleX: 2, scaleY: 2, name: `${asset.name}`
+      });
+      canvas.add(pathObj);
+      canvas.setActiveObject(pathObj);
     }
   };
 
@@ -367,20 +356,6 @@ export default function CanvasEditor() {
     canvas.requestRenderAll();
   };
 
-  const applyMagicErase = () => {
-    if (!activeObject || activeObject.type !== 'image') return;
-    if (!activeObject.filters) activeObject.filters = [];
-    activeObject.filters[5] = new fabric.Image.filters.RemoveColor({ color: '#ffffff', distance: 0.2 });
-    activeObject.applyFilters();
-    canvas.requestRenderAll();
-  };
-
-  const toggleFlip = (axis) => {
-    if (!activeObject) return;
-    activeObject.set(`flip${axis}`, !activeObject[`flip${axis}`]);
-    canvas.requestRenderAll();
-  };
-
   const applyMask = (type) => {
     if (!activeObject || activeObject.type !== 'image') return;
     if (type === 'circle') {
@@ -391,51 +366,6 @@ export default function CanvasEditor() {
       activeObject.set({ clipPath: null });
     }
     canvas.requestRenderAll();
-  };
-
-  const injectAsset = (asset) => {
-    if (asset.path) {
-      const pathObj = new fabric.Path(asset.path, {
-        left: canvas.getWidth() / 2, top: canvas.getHeight() / 2, originX: 'center', originY: 'center',
-        fill: asset.color || '#3b82f6', scaleX: 2, scaleY: 2, name: `${asset.name}`
-      });
-      canvas.add(pathObj);
-      canvas.setActiveObject(pathObj);
-    } else if (asset.text) {
-      const textObj = new fabric.IText(asset.text, {
-        left: canvas.getWidth() / 2, top: canvas.getHeight() / 2, originX: 'center', originY: 'center',
-        fontFamily: asset.font || 'Montserrat', fill: '#0f172a', fontSize: 40, fontWeight: 'bold', name: `${asset.name}`
-      });
-      canvas.add(textObj);
-      canvas.setActiveObject(textObj);
-    }
-  };
-
-  const applyTextEffect = (effectType) => {
-    if (!activeObject || activeObject.type !== 'i-text') return;
-    if (effectType === 'metallic') {
-      const gradient = new fabric.Gradient({
-        type: 'linear', coords: { x1: 0, y1: 0, x2: 0, y2: activeObject.height },
-        colorStops: [ { offset: 0, color: '#f8fafc' }, { offset: 0.5, color: '#94a3b8' }, { offset: 1, color: '#334155' } ]
-      });
-      activeObject.set('fill', gradient);
-      activeObject.set('shadow', new fabric.Shadow({ color: 'rgba(255,255,255,0.5)', blur: 2, offsetX: 1, offsetY: 1 }));
-    } 
-    else if (effectType === 'vintage') {
-      activeObject.set('fontFamily', 'Playfair Display');
-      activeObject.set('fill', '#d97706');
-      activeObject.set('opacity', 0.85);
-      activeObject.set('shadow', new fabric.Shadow({ color: '#78350f', blur: 0, offsetX: 4, offsetY: 4 }));
-    }
-    else if (effectType === 'glow') {
-      activeObject.set('shadow', new fabric.Shadow({ color: '#ec4899', blur: 20, offsetX: 0, offsetY: 0 }));
-    }
-    else if (effectType === 'outline') {
-      activeObject.set('stroke', '#0f172a');
-      activeObject.set('strokeWidth', 2);
-      activeObject.set('fill', 'transparent');
-    }
-    canvas.renderAll();
   };
 
   const updateActiveProp = (prop, value) => {
@@ -455,38 +385,9 @@ export default function CanvasEditor() {
     syncLayers();
   };
 
-  const toggleLayerLock = (obj) => { obj.set({ selectable: !obj.selectable, evented: !obj.evented }); canvas.renderAll(); syncLayers(); };
-  const toggleLayerVisibility = (obj) => { obj.set({ visible: !obj.visible }); canvas.discardActiveObject(); canvas.renderAll(); syncLayers(); };
-  const renameLayer = (obj, newName) => { obj.set('name', newName); syncLayers(); };
-  const duplicateLayer = (obj) => {
-    obj.clone((cloned) => {
-      cloned.set({ left: obj.left + 20, top: obj.top + 20, name: `${obj.name || 'Layer'} (Copy)` });
-      canvas.add(cloned);
-      canvas.setActiveObject(cloned);
-    });
-  };
-
-  const groupSelection = () => {
-    if (!canvas.getActiveObject()) return;
-    if (canvas.getActiveObject().type === 'activeSelection') {
-      canvas.getActiveObject().toGroup().set({ name: 'Layer Group' });
-      canvas.requestRenderAll();
-      syncLayers();
-    }
-  };
-
-  const ungroupSelection = () => {
-    if (!activeObject || activeObject.type !== 'group') return;
-    activeObject.toActiveSelection();
-    canvas.requestRenderAll();
-    syncLayers();
-  };
-
   const exportDesign = () => {
     const bleedArea = canvas.getObjects().find(o => o.name === 'bleed_area');
     if (!bleedArea) return;
-    
-    // Hide guides
     const guides = canvas.getObjects().filter(o => o.isWorkspaceLayer);
     guides.forEach(g => g.visible = false);
     
@@ -496,7 +397,6 @@ export default function CanvasEditor() {
       width: bleedArea.width, height: bleedArea.height
     });
 
-    // Restore guides
     guides.forEach(g => g.visible = true);
     canvas.renderAll();
     
@@ -504,6 +404,26 @@ export default function CanvasEditor() {
     link.download = `${activeProduct.name}-${activeArtboard}-300DPI.png`;
     link.href = dataURL;
     link.click();
+  };
+
+  const openMockupPreview = () => {
+    // Extract current design without guides
+    const bleedArea = canvas.getObjects().find(o => o.name === 'bleed_area');
+    if (!bleedArea) return;
+    const guides = canvas.getObjects().filter(o => o.isWorkspaceLayer);
+    guides.forEach(g => g.visible = false);
+    
+    const dataURL = canvas.toDataURL({
+      format: 'png', multiplier: 2, // High enough for preview
+      left: bleedArea.left - (bleedArea.width / 2), top: bleedArea.top - (bleedArea.height / 2),
+      width: bleedArea.width, height: bleedArea.height
+    });
+
+    guides.forEach(g => g.visible = true);
+    canvas.renderAll();
+    
+    setPreviewImage(dataURL);
+    setShowMockupModal(true);
   };
 
   return (
@@ -529,9 +449,9 @@ export default function CanvasEditor() {
 
         <div style={{ flexGrow: 1 }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <span style={{ fontSize: '12px', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <Monitor size={14}/> {activeProduct.name} - {ARTBOARDS[activeArtboard].name}
-          </span>
+          <button onClick={openMockupPreview} style={{...tBtnStyle, backgroundColor: '#4f46e5', color: 'white', border: 'none', padding: '8px 16px', fontWeight: 'bold'}}>
+            <Play size={16} style={{marginRight: '8px'}}/> Preview & Mockups
+          </button>
           <button onClick={exportDesign} style={{...tBtnStyle, backgroundColor: '#3b82f6', color: 'white', border: 'none', padding: '8px 16px', fontWeight: 'bold'}}>
             <Download size={16} style={{marginRight: '8px'}}/> Download 300DPI
           </button>
@@ -543,17 +463,15 @@ export default function CanvasEditor() {
         {/* LEFT SIDEBAR - APPAREL, ASSETS, DRAW */}
         <div style={{ width: '320px', backgroundColor: '#ffffff', borderRight: '1px solid #e2e8f0', display: 'flex' }}>
           
-          {/* Vertical Navigation */}
           <div style={{ width: '60px', backgroundColor: '#f1f5f9', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '15px 0', gap: '15px', borderRight: '1px solid #e2e8f0' }}>
             <button onClick={() => {setActiveLeftPanel('apparel'); setIsDrawingMode(false); canvas.isDrawingMode=false;}} style={activeLeftPanel === 'apparel' ? iconTabActive : iconTab} title="Apparel & Products"><Shirt size={20}/></button>
             <button onClick={() => {setActiveLeftPanel('assets'); setIsDrawingMode(false); canvas.isDrawingMode=false;}} style={activeLeftPanel === 'assets' ? iconTabActive : iconTab} title="Design Assets Library"><Wand2 size={20}/></button>
             <button onClick={() => setActiveLeftPanel('draw')} style={activeLeftPanel === 'draw' ? iconTabActive : iconTab} title="Vector & Drawing Tools"><PenTool size={20}/></button>
-            <button onClick={() => {setActiveLeftPanel('settings'); setIsDrawingMode(false); canvas.isDrawingMode=false;}} style={activeLeftPanel === 'settings' ? iconTabActive : iconTab} title="Workspace Settings"><Settings size={20}/></button>
           </div>
 
           <div style={{ flexGrow: 1, padding: '15px', overflowY: 'auto' }}>
             
-            {/* APPAREL & PRODUCT CATALOG */}
+            {/* APPAREL CATALOG */}
             {activeLeftPanel === 'apparel' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 <h3 style={pHeader}>Apparel Library</h3>
@@ -581,21 +499,12 @@ export default function CanvasEditor() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={labelTxt}>Garment Color</label>
+                  <label style={labelTxt}>Garment Color (Click to Apply)</label>
                   <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
                     {activeProduct.colors.map(color => (
                       <button key={color} onClick={() => setActiveColor(color)} style={{ width: '30px', height: '30px', borderRadius: '50%', backgroundColor: color, border: activeColor === color ? '2px solid #3b82f6' : '1px solid #cbd5e1', cursor: 'pointer' }} />
                     ))}
                   </div>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={labelTxt}>Print Position</label>
-                  <select value={activeArtboard} onChange={(e) => setActiveArtboard(e.target.value)} style={selectInput}>
-                    {activeProduct.positions.map(pos => (
-                      <option key={pos} value={pos}>{ARTBOARDS[pos].name}</option>
-                    ))}
-                  </select>
                 </div>
               </div>
             )}
@@ -604,12 +513,6 @@ export default function CanvasEditor() {
             {activeLeftPanel === 'assets' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <h3 style={pHeader}>Design Assets Library</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '5px' }}>
-                  {Object.keys(DESIGN_ASSETS).map((tab) => (
-                    <button key={tab} onClick={() => setActiveAssetTab(tab)} style={{ padding: '6px 4px', fontSize: '11px', textTransform: 'capitalize', backgroundColor: activeAssetTab === tab ? '#3b82f6' : '#f1f5f9', color: activeAssetTab === tab ? '#ffffff' : '#475569', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>{tab}</button>
-                  ))}
-                </div>
-                <hr style={divider} />
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
                   <button onClick={addText} style={{...btnSecondary, flex: 1}}><TypeIcon size={14}/> Text</button>
                   <button onClick={() => addShape('rect')} style={{...btnSecondary, flex: 1}}><Square size={14}/> Box</button>
@@ -620,77 +523,25 @@ export default function CanvasEditor() {
                   <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImageUpload} />
                 </label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                  {DESIGN_ASSETS[activeAssetTab]?.map((asset, idx) => (
+                  {DESIGN_ASSETS.icons.map((asset, idx) => (
                     <div key={idx} onClick={() => injectAsset(asset)} style={assetCardStyle}>
-                      {asset.path ? <svg viewBox="0 0 24 24" width="24" height="24"><path d={asset.path} fill={asset.color || '#3b82f6'}/></svg> : <Star size={20} color="#3b82f6" />}
+                      <svg viewBox="0 0 24 24" width="24" height="24"><path d={asset.path} fill={asset.color || '#3b82f6'}/></svg>
                       <span style={{ fontWeight: '500', color: '#334155' }}>{asset.name}</span>
                     </div>
                   ))}
                 </div>
               </div>
             )}
-
-            {/* VECTOR & DRAWING TOOLS */}
-            {activeLeftPanel === 'draw' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                <h3 style={pHeader}>Vector & Drawing</h3>
-                
-                <button onClick={toggleDrawMode} style={{...btnSecondary, justifyContent: 'center', backgroundColor: isDrawingMode ? '#3b82f6' : '#ffffff', color: isDrawingMode ? '#ffffff' : '#334155'}}>
-                  {isDrawingMode ? <MousePointer2 size={16}/> : <PenTool size={16}/>}
-                  {isDrawingMode ? 'Exit Drawing Mode' : 'Freehand Pen Tool'}
-                </button>
-
-                {isDrawingMode && (
-                  <div style={{ padding: '15px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
-                    <div style={propRow}>
-                      <span style={labelTxt}>Brush Color</span>
-                      <input type="color" value={brushColor} onChange={(e) => updateBrush('color', e.target.value)} style={{ width: '40px', height: '30px', padding: 0, border: 'none' }} />
-                    </div>
-                    <div style={propRow}>
-                      <span style={labelTxt}>Brush Size ({brushSize}px)</span>
-                      <input type="range" min="1" max="50" value={brushSize} onChange={(e) => updateBrush('width', parseInt(e.target.value))} style={{ width: '100px' }} />
-                    </div>
-                  </div>
-                )}
-
-                <hr style={divider} />
-                <h4 style={subHeader}>Vector Operations</h4>
-                <button onClick={textToOutlines} style={btnSecondary} title="Rasterize text into high-res uneditable vector-like paths for print preservation">
-                  <TypeIcon size={14}/> Convert Text to Outlines
-                </button>
-                <button style={{...btnSecondary, opacity: 0.5, cursor: 'not-allowed'}} title="Advanced Boolean Operations (Pro Feature)">
-                  <Layers size={14}/> Shape Builder / Boolean
-                </button>
-              </div>
-            )}
-
-            {/* SETTINGS */}
-            {activeLeftPanel === 'settings' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                <h3 style={pHeader}>Precision Grid</h3>
-                <label style={toggleLabel}><input type="checkbox" checked={showGrid} onChange={e => setShowGrid(e.target.checked)} /> Show Visual Grid</label>
-                <label style={toggleLabel}><input type="checkbox" checked={snapToGrid} onChange={e => setSnapToGrid(e.target.checked)} /> Snap Objects to Grid</label>
-              </div>
-            )}
           </div>
         </div>
 
         {/* MIDDLE - WORKSPACE & CANVAS */}
-        <div ref={wrapperRef} style={{ flexGrow: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#cbd5e1', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <div ref={wrapperRef} onClick={(e) => { if (e.target === wrapperRef.current) canvas.discardActiveObject(); canvas.requestRenderAll(); }} style={{ flexGrow: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#cbd5e1', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           
           {/* Simulated Garment Background */}
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: activeColor, mixBlendMode: 'multiply', opacity: 0.2, pointerEvents: 'none', zIndex: 0 }}></div>
 
-          <div style={{ position: 'absolute', top: 0, left: '25px', right: 0, height: '25px', backgroundColor: '#f8fafc', borderBottom: '1px solid #94a3b8', zIndex: 10, backgroundSize: '100px 100%', backgroundImage: 'repeating-linear-gradient(to right, #64748b 0, #64748b 1px, transparent 1px, transparent 10px, #cbd5e1 10px, #cbd5e1 11px, transparent 11px, transparent 100px)' }}></div>
-          <div style={{ position: 'absolute', top: '25px', left: 0, bottom: 0, width: '25px', backgroundColor: '#f8fafc', borderRight: '1px solid #94a3b8', zIndex: 10, backgroundSize: '100% 100px', backgroundImage: 'repeating-linear-gradient(to bottom, #64748b 0, #64748b 1px, transparent 1px, transparent 10px, #cbd5e1 10px, #cbd5e1 11px, transparent 11px, transparent 100px)' }}></div>
-
           <canvas ref={canvasRef} style={{ zIndex: 1 }} />
-
-          {dimensions && (
-            <div style={{ position: 'absolute', top: '35px', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#1e293b', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '11px', zIndex: 20, fontWeight: 'bold', letterSpacing: '1px' }}>
-              W: {dimensions.w}px &nbsp;|&nbsp; H: {dimensions.h}px
-            </div>
-          )}
 
           {/* Viewport Controls */}
           <div style={{ position: 'absolute', bottom: '20px', left: '45px', backgroundColor: '#ffffff', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', display: 'flex', border: '1px solid #e2e8f0', zIndex: 20 }}>
@@ -700,64 +551,36 @@ export default function CanvasEditor() {
             </div>
             <button onClick={() => setZoom(z => Math.min(5, z + 0.1))} style={ctrlBtn} title="Zoom In"><ZoomIn size={16}/></button>
             <button onClick={() => { canvas.setZoom(1); setZoom(1); canvas.viewportTransform[4]=0; canvas.viewportTransform[5]=0; canvas.requestRenderAll(); }} style={{...ctrlBtn, borderLeft: '1px solid #e2e8f0'}} title="Reset View"><Maximize size={16}/></button>
-            <button onClick={() => setIsPanning(!isPanning)} style={{...ctrlBtn, borderLeft: '1px solid #e2e8f0', backgroundColor: isPanning ? '#eff6ff' : 'transparent', color: isPanning ? '#3b82f6' : '#64748b'}} title="Pan Tool"><Move size={16}/></button>
           </div>
         </div>
 
-        {/* RIGHT SIDEBAR - LAYERS & PROPERTIES */}
+        {/* RIGHT SIDEBAR - PROPERTIES & LAYERS */}
         <div style={{ width: '320px', backgroundColor: '#ffffff', borderLeft: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column' }}>
-          
           <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0' }}>
-            <button onClick={() => setActiveRightPanel('layers')} style={activeRightPanel === 'layers' ? rightTabActive : rightTab}>
-              <Layers size={16} /> Layers
-            </button>
-            <button onClick={() => setActiveRightPanel('properties')} style={activeRightPanel === 'properties' ? rightTabActive : rightTab}>
-              <Settings size={16} /> Properties
-            </button>
+            <button onClick={() => setActiveRightPanel('properties')} style={activeRightPanel === 'properties' ? rightTabActive : rightTab}><Settings size={16} /> Properties</button>
+            <button onClick={() => setActiveRightPanel('layers')} style={activeRightPanel === 'layers' ? rightTabActive : rightTab}><Layers size={16} /> Layers</button>
           </div>
 
-          <div style={{ flexGrow: 1, overflowY: 'auto' }}>
+          <div style={{ flexGrow: 1, overflowY: 'auto', padding: '15px' }}>
             
-            {/* LAYER PANEL */}
-            {activeRightPanel === 'layers' && (
-              <div style={{ padding: '15px' }}>
-                <div style={{ display: 'flex', gap: '5px', marginBottom: '15px' }}>
-                  <input type="text" placeholder="Search layers..." value={layerSearch} onChange={(e) => setLayerSearch(e.target.value)} style={{...selectInput, flexGrow: 1}} />
-                  <button onClick={groupSelection} style={iconBtn} title="Group Selection"><Folder size={16}/></button>
-                  <button onClick={ungroupSelection} style={iconBtn} title="Ungroup"><Group size={16}/></button>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {layers.filter(l => (l.name || l.type).toLowerCase().includes(layerSearch.toLowerCase())).map((layer, index) => (
-                    <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', backgroundColor: activeObject === layer ? '#eff6ff' : '#f8fafc', border: `1px solid ${activeObject === layer ? '#bfdbfe' : '#e2e8f0'}`, borderRadius: '6px' }}>
-                      <div onClick={() => canvas.setActiveObject(layer) || canvas.renderAll()} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', flexGrow: 1, overflow: 'hidden' }}>
-                        {layer.type === 'i-text' ? <TypeIcon size={14} color="#64748b" style={{marginRight:'8px'}}/> : 
-                         layer.type === 'group' ? <Folder size={14} color="#64748b" style={{marginRight:'8px'}}/> :
-                         layer.type === 'path' ? <PenTool size={14} color="#64748b" style={{marginRight:'8px'}}/> :
-                         <Layers size={14} color="#64748b" style={{marginRight:'8px'}}/>}
-                        <input value={layer.name || layer.type} onChange={(e) => renameLayer(layer, e.target.value)} style={{ border: 'none', background: 'transparent', fontSize: '12px', color: '#334155', width: '100%', outline: 'none' }} />
-                      </div>
-                      
-                      <button onClick={() => toggleLayerVisibility(layer)} style={layerActionBtn}>{layer.visible ? <Eye size={14}/> : <EyeOff size={14} color="#cbd5e1"/>}</button>
-                      <button onClick={() => toggleLayerLock(layer)} style={layerActionBtn}>{layer.selectable ? <Unlock size={14}/> : <Lock size={14} color="#cbd5e1"/>}</button>
-                      <button onClick={() => duplicateLayer(layer)} style={layerActionBtn}><Copy size={14}/></button>
-                      
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <button onClick={() => handleLayerOrder('up', layer)} style={{...layerActionBtn, padding: 0}}><ArrowUp size={12}/></button>
-                        <button onClick={() => handleLayerOrder('down', layer)} style={{...layerActionBtn, padding: 0}}><ArrowDown size={12}/></button>
-                      </div>
-                    </div>
-                  ))}
-                  {layers.length === 0 && <div style={{ fontSize: '12px', color: '#94a3b8', textAlign: 'center', padding: '20px 0' }}>Workspace is empty.</div>}
-                </div>
-              </div>
-            )}
-
             {/* PROPERTIES PANEL */}
             {activeRightPanel === 'properties' && (
-              <div style={{ padding: '15px' }}>
+              <div>
                 {!activeObject ? (
-                   <div style={{ fontSize: '13px', color: '#64748b', textAlign: 'center', padding: '20px' }}>Select a layer on the canvas to view properties.</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    <div style={{ padding: '20px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px dashed #cbd5e1', textAlign: 'center' }}>
+                      <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 10px 0' }}>No object selected.</p>
+                      <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Select an object to edit properties, or press <b>Delete / Backspace</b> to remove it.</p>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <h4 style={subHeader}>Global Garment Color</h4>
+                      <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                        {activeProduct.colors.map(color => (
+                          <button key={color} onClick={() => setActiveColor(color)} style={{ width: '35px', height: '35px', borderRadius: '8px', backgroundColor: color, border: activeColor === color ? '2px solid #3b82f6' : '1px solid #cbd5e1', cursor: 'pointer' }} />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     <div>
@@ -766,65 +589,15 @@ export default function CanvasEditor() {
                         <span style={labelTxt}>Opacity</span>
                         <input type="range" min="0" max="1" step="0.05" value={activeObject.opacity} onChange={(e) => updateActiveProp('opacity', parseFloat(e.target.value))} style={{ flexGrow: 1 }} />
                       </div>
-                      <select value={activeObject.globalCompositeOperation || 'source-over'} onChange={(e) => updateActiveProp('globalCompositeOperation', e.target.value)} style={selectInput}>
-                         <option value="source-over">Normal (Default)</option>
-                         {BLEND_MODES.filter(m => m !== 'normal').map(mode => <option key={mode} value={mode}>{mode.charAt(0).toUpperCase() + mode.slice(1)}</option>)}
-                      </select>
                     </div>
 
-                    {activeObject.type === 'i-text' && (
-                      <>
-                        <hr style={divider} />
-                        <div>
-                          <h4 style={subHeader}>Advanced Typography</h4>
-                          <div style={propRow}>
-                            <span style={labelTxt}>Letter Spacing</span>
-                            <input type="number" value={activeObject.charSpacing || 0} onChange={(e) => updateActiveProp('charSpacing', e.target.value)} style={numInput} />
-                          </div>
-                          <div style={propRow}>
-                            <span style={labelTxt}>Line Height</span>
-                            <input type="number" step="0.1" value={activeObject.lineHeight || 1.16} onChange={(e) => updateActiveProp('lineHeight', parseFloat(e.target.value))} style={numInput} />
-                          </div>
-                        </div>
-                        <hr style={divider} />
-                        <div>
-                          <h4 style={subHeader}>Text Effects & Presets</h4>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                            <button onClick={() => applyTextEffect('metallic')} style={effectBtn}><Sparkles size={14}/> Metallic</button>
-                            <button onClick={() => applyTextEffect('vintage')} style={effectBtn}><TypeIcon size={14}/> Vintage</button>
-                            <button onClick={() => applyTextEffect('glow')} style={effectBtn}><Wand2 size={14}/> Neon Glow</button>
-                            <button onClick={() => applyTextEffect('outline')} style={effectBtn}><TypeIcon size={14}/> Hollow</button>
-                          </div>
-                        </div>
-                      </>
-                    )}
-
                     {activeObject.type === 'image' && (
-                      <>
-                        <hr style={divider} />
-                        <div>
-                          <h4 style={subHeader}><Sliders size={12} style={{marginRight: '4px', verticalAlign: 'middle'}}/> Image Adjustments</h4>
-                          <div style={{ display: 'flex', gap: '8px', marginBottom: '15px' }}>
-                            <button onClick={() => toggleFlip('X')} style={effectBtn} title="Flip Horizontal"><FlipHorizontal size={14}/></button>
-                            <button onClick={() => toggleFlip('Y')} style={effectBtn} title="Flip Vertical"><FlipVertical size={14}/></button>
-                            <button onClick={applyMagicErase} style={{...effectBtn, color: '#ec4899', borderColor: '#fbcfe8', backgroundColor: '#fdf2f8'}} title="Magic Erase (Remove White)"><Eraser size={14}/></button>
-                          </div>
-                          <div style={propRow}><span style={labelTxt}>Brightness</span><input type="range" min="-1" max="1" step="0.05" defaultValue="0" onChange={(e) => applyImageFilter(0, 'Brightness', { brightness: parseFloat(e.target.value) })} style={{ width: '100px' }} /></div>
-                          <div style={propRow}><span style={labelTxt}>Contrast</span><input type="range" min="-1" max="1" step="0.05" defaultValue="0" onChange={(e) => applyImageFilter(1, 'Contrast', { contrast: parseFloat(e.target.value) })} style={{ width: '100px' }} /></div>
-                          <div style={propRow}><span style={labelTxt}>Saturation</span><input type="range" min="-1" max="1" step="0.05" defaultValue="0" onChange={(e) => applyImageFilter(2, 'Saturation', { saturation: parseFloat(e.target.value) })} style={{ width: '100px' }} /></div>
-                          <div style={propRow}><span style={labelTxt}>Blur</span><input type="range" min="0" max="1" step="0.05" defaultValue="0" onChange={(e) => applyImageFilter(3, 'Blur', { blur: parseFloat(e.target.value) })} style={{ width: '100px' }} /></div>
-                        </div>
-                        <hr style={divider} />
-                        <div>
-                          <h4 style={subHeader}><Scissors size={12} style={{marginRight: '4px', verticalAlign: 'middle'}}/> Mask & Crop</h4>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                            <button onClick={() => applyMask('circle')} style={effectBtn}><Circle size={14}/> Circle Mask</button>
-                            <button onClick={() => applyMask('none')} style={effectBtn}><Crop size={14}/> Remove Mask</button>
-                          </div>
-                        </div>
-                      </>
+                      <div>
+                        <h4 style={subHeader}><Sliders size={12} style={{marginRight: '4px', verticalAlign: 'middle'}}/> Image Adjustments</h4>
+                        <div style={propRow}><span style={labelTxt}>Brightness</span><input type="range" min="-1" max="1" step="0.05" defaultValue="0" onChange={(e) => applyImageFilter(0, 'Brightness', { brightness: parseFloat(e.target.value) })} style={{ width: '100px' }} /></div>
+                        <div style={propRow}><span style={labelTxt}>Contrast</span><input type="range" min="-1" max="1" step="0.05" defaultValue="0" onChange={(e) => applyImageFilter(1, 'Contrast', { contrast: parseFloat(e.target.value) })} style={{ width: '100px' }} /></div>
+                      </div>
                     )}
-
                     <hr style={divider} />
                     <button onClick={() => { canvas.remove(activeObject); setActiveObject(null); syncLayers(); }} style={{...btnSecondary, color: '#ef4444', borderColor: '#fecaca', backgroundColor: '#fef2f2', justifyContent: 'center' }}>
                       <Trash2 size={16}/> Delete Layer
@@ -833,12 +606,91 @@ export default function CanvasEditor() {
                 )}
               </div>
             )}
+
+            {/* LAYERS PANEL */}
+            {activeRightPanel === 'layers' && (
+               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+               {layers.map((layer, index) => (
+                 <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', backgroundColor: activeObject === layer ? '#eff6ff' : '#f8fafc', border: `1px solid ${activeObject === layer ? '#bfdbfe' : '#e2e8f0'}`, borderRadius: '6px' }}>
+                   <div onClick={() => canvas.setActiveObject(layer) || canvas.renderAll()} style={{ cursor: 'pointer', flexGrow: 1, fontSize: '12px' }}>
+                     {layer.name || layer.type}
+                   </div>
+                   <button onClick={() => handleLayerOrder('up', layer)} style={layerActionBtn}><ArrowUp size={14}/></button>
+                   <button onClick={() => handleLayerOrder('down', layer)} style={layerActionBtn}><ArrowDown size={14}/></button>
+                   <button onClick={() => { canvas.remove(layer); syncLayers(); }} style={{...layerActionBtn, color: '#ef4444'}}><Trash2 size={14}/></button>
+                 </div>
+               ))}
+             </div>
+            )}
           </div>
         </div>
       </div>
+
+      {}
+      {showMockupModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.95)', zIndex: 1000, display: 'flex', flexDirection: 'column' }}>
+          
+          <div style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+            <h2 style={{ color: 'white', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}><Play size={20}/> 3D & Mockup Generator</h2>
+            <button onClick={() => setShowMockupModal(false)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}><X size={24}/></button>
+          </div>
+
+          <div style={{ display: 'flex', flexGrow: 1 }}>
+            
+            {/* Mockup Tools Sidebar */}
+            <div style={{ width: '250px', backgroundColor: '#1e293b', borderRight: '1px solid rgba(255,255,255,0.1)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <h3 style={{ color: '#94a3b8', fontSize: '12px', textTransform: 'uppercase', marginBottom: '10px' }}>Environment</h3>
+              
+              <button onClick={() => setMockupMode('studio')} style={mockupMode === 'studio' ? mockupBtnActive : mockupBtn}><Monitor size={16}/> Studio Render</button>
+              <button onClick={() => setMockupMode('3d')} style={mockupMode === '3d' ? mockupBtnActive : mockupBtn}><Box size={16}/> 3D 360° Rotate</button>
+              <button onClick={() => setMockupMode('lifestyle')} style={mockupMode === 'lifestyle' ? mockupBtnActive : mockupBtn}><User size={16}/> Lifestyle Scene</button>
+              <button onClick={() => setMockupMode('flatlay')} style={mockupMode === 'flatlay' ? mockupBtnActive : mockupBtn}><Layers size={16}/> Flat Lay Wood</button>
+              <button onClick={() => setMockupMode('transparent')} style={mockupMode === 'transparent' ? mockupBtnActive : mockupBtn}><Grid size={16}/> Transparent PNG</button>
+              <button onClick={() => setMockupMode('mobile')} style={mockupMode === 'mobile' ? mockupBtnActive : mockupBtn}><Smartphone size={16}/> Mobile Preview</button>
+            </div>
+
+            {/* Mockup Rendering Viewport */}
+            <div style={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', ...getMockupBackground(mockupMode) }}>
+              
+              {/* Dynamic Mockup Container */}
+              <div className={mockupMode === '3d' ? 'spin-animation' : ''} style={getMockupContainerStyle(mockupMode, activeColor)}>
+                
+                {/* T-Shirt Silhouette / Mask */}
+                <div style={{ position: 'absolute', top: '10%', left: '15%', right: '15%', bottom: '10%', backgroundColor: 'rgba(0,0,0,0.1)', borderRadius: '40px 40px 10px 10px', boxShadow: 'inset 0 0 50px rgba(0,0,0,0.2)' }}>
+                   {/* Simulating shirt collar */}
+                   <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translate(-50%, -50%)', width: '120px', height: '40px', backgroundColor: mockupMode === 'transparent' ? 'transparent' : '#fff', borderRadius: '50%', opacity: 0.1 }}></div>
+                </div>
+
+                {/* The Extracted Design Overlay */}
+                {previewImage && (
+                  <img src={previewImage} alt="Design Preview" style={{ position: 'absolute', top: '25%', left: '50%', transform: 'translateX(-50%)', width: '40%', height: 'auto', mixBlendMode: 'multiply' }} />
+                )}
+
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
+
+const getMockupBackground = (mode) => {
+  if (mode === 'lifestyle') return { background: 'linear-gradient(to bottom, #87CEEB, #e0f6ff)' }; // Sky gradient
+  if (mode === 'flatlay') return { background: 'linear-gradient(45deg, #d2b48c, #deb887)' }; // Wood color
+  if (mode === 'transparent') return { backgroundImage: 'repeating-linear-gradient(45deg, #334155 25%, transparent 25%, transparent 75%, #334155 75%, #334155), repeating-linear-gradient(45deg, #334155 25%, #1e293b 25%, #1e293b 75%, #334155 75%, #334155)', backgroundPosition: '0 0, 15px 15px', backgroundSize: '30px 30px' };
+  return { backgroundColor: '#cbd5e1' }; // Studio default
+};
+
+const getMockupContainerStyle = (mode, color) => {
+  const base = { position: 'relative', width: '400px', height: '500px', backgroundColor: color, borderRadius: '20px', boxShadow: '0 20px 50px rgba(0,0,0,0.3)', transition: 'all 0.5s ease' };
+  if (mode === 'mobile') return { ...base, width: '300px', height: '600px', borderRadius: '40px', border: '12px solid #0f172a' };
+  if (mode === 'flatlay') return { ...base, boxShadow: '10px 10px 30px rgba(0,0,0,0.5)', transform: 'rotate(-5deg)' };
+  if (mode === 'transparent') return { ...base, boxShadow: 'none' };
+  return base;
+};
 
 const tBtnStyle = { padding: '6px', backgroundColor: 'transparent', border: 'none', borderRadius: '4px', cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center', transition: '0.2s' };
 const tActiveBtnStyle = { ...tBtnStyle, backgroundColor: '#334155', color: '#ffffff' };
@@ -847,18 +699,16 @@ const toolbarColorStyle = { padding: '0', border: '1px solid #334155', borderRad
 const pHeader = { margin: '0 0 10px 0', fontSize: '12px', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 'bold' };
 const subHeader = { margin: '0 0 10px 0', fontSize: '11px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 'bold' };
 const btnSecondary = { display: 'flex', gap: '8px', alignItems: 'center', padding: '10px', backgroundColor: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '500', color: '#334155', transition: '0.2s' };
-const effectBtn = { ...btnSecondary, padding: '6px 8px', fontSize: '12px', justifyContent: 'center', backgroundColor: '#f8fafc' };
 const iconTab = { padding: '12px', backgroundColor: 'transparent', border: 'none', borderRadius: '8px', cursor: 'pointer', color: '#94a3b8', transition: '0.2s' };
 const iconTabActive = { ...iconTab, backgroundColor: '#e2e8f0', color: '#0f172a' };
 const rightTab = { flexGrow: 1, padding: '12px', backgroundColor: '#f8fafc', border: 'none', borderBottom: '2px solid transparent', cursor: 'pointer', fontSize: '13px', fontWeight: '600', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' };
 const rightTabActive = { ...rightTab, backgroundColor: '#ffffff', borderBottom: '2px solid #3b82f6', color: '#0f172a' };
 const selectInput = { width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '13px', backgroundColor: '#fff', color: '#0f172a' };
-const toggleLabel = { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#475569', marginBottom: '8px', cursor: 'pointer' };
 const ctrlBtn = { padding: '8px 12px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', color: '#64748b', display: 'flex', justifyContent: 'center', alignItems: 'center', transition: '0.2s' };
 const layerActionBtn = { background: 'transparent', border: 'none', padding: '4px', cursor: 'pointer', color: '#64748b', display: 'flex' };
-const iconBtn = { padding: '6px', backgroundColor: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer', color: '#475569' };
 const divider = { borderTop: '1px solid #e2e8f0', margin: '15px 0', borderBottom: 'none' };
 const propRow = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' };
 const labelTxt = { fontSize: '12px', color: '#475569' };
-const numInput = { width: '70px', padding: '4px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '12px', textAlign: 'right' };
-const assetCardStyle = { padding: '12px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center', cursor: 'pointer', fontSize: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', transition: '0.2s' };
+const assetCardStyle = { padding: '12px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center', cursor: 'pointer', fontSize: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' };
+const mockupBtn = { display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', backgroundColor: 'transparent', border: '1px solid transparent', borderRadius: '6px', color: '#cbd5e1', cursor: 'pointer', fontSize: '13px' };
+const mockupBtnActive = { ...mockupBtn, backgroundColor: '#334155', border: '1px solid #475569', color: '#ffffff' };
